@@ -15,6 +15,9 @@
             `./get-dataset.sh`.
             For permission, first do `chmod u+x ./get-dataset.sh`.
 
+    - Run:
+        - `python config/config.py`
+
 - Train
     - For training, do:
         - `python train.py -m <model-name/or-model-path>`

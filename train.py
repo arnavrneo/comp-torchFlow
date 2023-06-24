@@ -3,6 +3,7 @@ from ultralytics.yolo.utils import yaml_load
 from pathlib import Path
 from types import SimpleNamespace
 import argparse
+import torch
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-m", "--ckpt")
@@ -16,8 +17,11 @@ def cfg2dict(cfg):
     return cfg
 
 def train(ckpt=ckpt, cfg="config/train-config.yaml"):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Running on: {device}")
     # Loading pretrained model
     model = YOLO(ckpt["ckpt"])
+    model.to(device)
     args = cfg2dict(cfg)
 
     # Training on custom config.yaml file
