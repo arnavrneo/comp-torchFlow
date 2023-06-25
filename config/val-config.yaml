@@ -1,15 +1,15 @@
 # Validation arguments
 
 data: config/dataset.yaml
-imgsz: 640 # (640, 480)
+imgsz: [640, 480] # [640, 480]
 batch: 16
-save_json: False
+save_json: True
 save_hybrid: False
-conf: 0.001
-iou: 0.6
+conf: 0.
+iou: 0.5
 max_det: 300
 half: True
-device: None
+device: 0
 dnn: False
 plots: False
 rect: False
