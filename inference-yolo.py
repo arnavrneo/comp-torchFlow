@@ -9,7 +9,7 @@ import cv2
 import argparse
 import os
 
-# ONNX test
+# YOLO Inference
 
 class YOLOInference():
     def __init__(self, model_path, img_path, subs_file, conf_thres=0.05, iou_thres=0.3, save_path='./'):
