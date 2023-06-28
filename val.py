@@ -4,19 +4,18 @@ from pathlib import Path
 from types import SimpleNamespace
 import argparse
 import torch
-from sahi import AutoDetectionModel
-from sahi.utils.cv import read_image
-from sahi.predict import get_sliced_prediction, predict
-from sahi.scripts.coco_evaluation import evaluate
+from sahi.predict import predict
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-m", "--ckpt")
 parser.add_argument("-i", "--img_dir")
 parser.add_argument("-d", "--dataset_json")
+parser.add_argument("-c", "--conf_thresh")
 args = parser.parse_args()
 ckpt = args.ckpt
 img_dir = args.img_dir
 dataset_json = args.dataset_json
+conf_thresh = args.conf_thresh
 
 def cfg2dict(cfg):
     if isinstance(cfg, (str, Path)):
@@ -40,7 +39,7 @@ def val(img_dir=img_dir, ckpt=ckpt, dataset_json=dataset_json, cfg="config/val-c
     model_type = "yolov8"
     model_path = ckpt
     model_device = "cuda:0" # or 'cuda:0'
-    model_confidence_threshold = 0.4
+    model_confidence_threshold = conf_thresh
 
     slice_height = 512
     slice_width = 512
@@ -65,3 +64,6 @@ def val(img_dir=img_dir, ckpt=ckpt, dataset_json=dataset_json, cfg="config/val-c
 
 if __name__ == "__main__":
     val()
+
+
+# python val.py -m <model-ckpt.pt> -i <img-dir> -d <coco-annot-for-set.json> -c 0.3
