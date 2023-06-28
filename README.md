@@ -30,4 +30,5 @@
     - For changing params, edit `val-config.yaml`.
 
 - Inference
-    - WIP
+    - Inference using YOLO [added]
+    - Inference using ONNX [WIP]
