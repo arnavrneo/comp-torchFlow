@@ -4,18 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import argparse
 import torch
-from sahi.predict import predict
 
-parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("-m", "--ckpt")
-parser.add_argument("-i", "--img_dir")
-parser.add_argument("-d", "--dataset_json")
-parser.add_argument("-c", "--conf_thresh")
-args = parser.parse_args()
-ckpt = args.ckpt
-img_dir = args.img_dir
-dataset_json = args.dataset_json
-conf_thresh = args.conf_thresh
 
 def cfg2dict(cfg):
     if isinstance(cfg, (str, Path)):
@@ -24,46 +13,28 @@ def cfg2dict(cfg):
         cfg = vars(cfg)  # convert to dict
     return cfg
 
-def val(img_dir=img_dir, ckpt=ckpt, dataset_json=dataset_json, cfg="config/val-config.yaml"):
+def val(ckpt, cfg="config/val-config.yaml"):
     # Loading pretrained model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Running on: {device}")
-    # model = YOLO(ckpt["ckpt"])
-    # model.to(device)
-    # args = cfg2dict(cfg)
+    model = YOLO(ckpt)
+    model.to(device)
+    args = cfg2dict(cfg)
 
-    # # Training on custom config.yaml file
-    # model.val(
-    #     **args
-    # )
-    model_type = "yolov8"
-    model_path = ckpt
-    model_device = "cuda:0" # or 'cuda:0'
-    model_confidence_threshold = conf_thresh
-
-    slice_height = 512
-    slice_width = 512
-    overlap_height_ratio = 0.2
-    overlap_width_ratio = 0.2
-
-    source_image_dir = img_dir
-
-    predict(
-        model_type=model_type,
-        model_path=model_path,
-        model_device=model_device,
-        model_confidence_threshold=model_confidence_threshold,
-        source=source_image_dir,
-        slice_height=slice_height,
-        slice_width=slice_width,
-        overlap_height_ratio=overlap_height_ratio,
-        overlap_width_ratio=overlap_width_ratio,
-        dataset_json_path=dataset_json
+    # Training on custom config.yaml file
+    model.val(
+        **args
     )
 
-
 if __name__ == "__main__":
-    val()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-m", "--ckpt")
+    args = parser.parse_args()
+    ckpt = args.ckpt
+
+    val(
+        ckpt=ckpt
+    )
 
 
 # python val.py -m <model-ckpt.pt> -i <img-dir> -d <coco-annot-for-set.json> -c 0.3
