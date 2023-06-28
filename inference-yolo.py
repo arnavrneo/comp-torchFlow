@@ -4,9 +4,7 @@ from exif import Image
 from ensemble_boxes import *
 import argparse
 import os
-from sahi.predict import predict
-from collections import Counter
-import json
+from ultralytics import YOLO
 
 # YOLO Inference
 
@@ -15,7 +13,6 @@ class YOLOInference():
                 model_path,
                 img_path,
                 subs_file,
-                dataset_json,
                 conf_thres=0.05,
                 iou_thres=0.3,
                 save_path='./'
@@ -23,7 +20,6 @@ class YOLOInference():
         self.model_path = model_path
         self.img_path = img_path
         self.subs_file = subs_file
-        self.dataset_json = dataset_json
         self.conf_thres = conf_thres
         self.iou_thres = iou_thres
         self.save_path = save_path
@@ -51,42 +47,24 @@ class YOLOInference():
                 url = f"https://www.google.com/maps?q={dd_lat:.7f},{dd_long:.7f}"
                 GEO_TAG_URL.append(url)
 
-        model_type = "yolov8"
-        model_path = self.model_path
-        model_device = "cuda:0" # or 'cuda:0'
-        model_confidence_threshold = self.conf_thres
-
-        slice_height = 512
-        slice_width = 512
-        overlap_height_ratio = 0.2
-        overlap_width_ratio = 0.2
-
-        source_image_dir = IMAGES_PATH.as_posix()
-
-        res = predict(
-            model_type=model_type,
-            model_path=model_path,
-            model_device=model_device,
-            model_confidence_threshold=model_confidence_threshold,
-            source=source_image_dir,
-            slice_height=slice_height,
-            slice_width=slice_width,
-            overlap_height_ratio=overlap_height_ratio,
-            overlap_width_ratio=overlap_width_ratio,
-            dataset_json_path=self.dataset_json,
-            return_dict=True
+        model = YOLO(self.model_path)
+        results = model.predict(
+            IMAGES_PATH,
+            conf=0.25,
+            iou=0.7,
+            device=0
         )
-        res_path = res["export_dir"].as_posix() + "/result.json"
-        result = json.load(open(res_path))
-        counts = []
-        for i in result:
-            counts.append(i["image_id"])
-        preds = Counter(counts)
-        sorted_pred = sorted(preds.items(), key=lambda k: k[0])
-        pred_ct = [x[1] for x in sorted_pred]
+
+        # boxes = []
+        # conf = []
+        pred_ct = []
+        for res in results:
+            box = res.boxes
+            # boxes.append(box.xyxy)
+            # conf.append(box.conf)
+            pred_ct.append(len(box.cls))
 
         ct_error = [int(subs["ACTUAL_CT"][i]) - pred_ct[i] for i in range(len(subs["ACTUAL_CT"]))]
-
         per_error = [round(abs(ct_error[i]/int(subs["ACTUAL_CT"][i])), 3) for i in range(len(subs["ACTUAL_CT"]))]
 
         subs["PRED_CT"] = pred_ct
@@ -101,7 +79,6 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--model_path")
     parser.add_argument("-p", "--img_pth")
     parser.add_argument("-f", "--subs_file")
-    parser.add_argument("-d", "--dataset_json")
     parser.add_argument("-c", "--conf_thres", type=float)
     parser.add_argument("-i", "--iou_thres", type=float)
     parser.add_argument("-s", "--save_path")
@@ -112,7 +89,6 @@ if __name__ == "__main__":
         model_path=args.model_path,
         img_path=args.img_pth,
         subs_file=args.subs_file,
-        dataset_json=args.dataset_json,
         conf_thres=args.conf_thres,
         iou_thres=args.iou_thres,
         save_path=args.save_path
