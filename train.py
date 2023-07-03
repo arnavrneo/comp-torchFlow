@@ -1,3 +1,5 @@
+# Training script
+
 from ultralytics import YOLO
 from ultralytics.yolo.utils import yaml_load
 from pathlib import Path

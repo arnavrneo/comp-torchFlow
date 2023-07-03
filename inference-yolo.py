@@ -1,3 +1,5 @@
+# Inference script for YOLOv8 model
+
 import pandas as pd
 from pathlib import Path
 from exif import Image
@@ -22,7 +24,7 @@ class YOLOInference():
         self.subs_file = subs_file
         self.conf_thres = conf_thres
         self.iou_thres = iou_thres
-        self.save_path = save_path
+        self.save_path = './'
 
     def run(self):
         # CSV
