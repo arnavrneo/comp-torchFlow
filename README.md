@@ -31,4 +31,4 @@
 
 - Inference
     - Inference using YOLO [added]
-    - Inference using ONNX [WIP]
+    - Inference using ONNX [added]
