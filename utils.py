@@ -1,7 +1,7 @@
-# Utilities for inferencing
+# Utilities
 
-import numpy as np
 import cv2
+import numpy as np
 from PIL import Image
 
 def load_img(img_path, input_shape):
