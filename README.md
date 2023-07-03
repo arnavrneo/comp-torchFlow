@@ -1,6 +1,6 @@
 - Steps
 
-    - `git clone https://github.com/arnavrneo/comp-torchFlow.git`
+    - `git clone https://github.com/arnavrneo/torchFlow.git`
     - `cd comp-torchFlow`
 
     - `pip install -r requirements.txt`
