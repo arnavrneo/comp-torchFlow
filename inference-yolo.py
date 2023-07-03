@@ -50,8 +50,8 @@ class YOLOInference():
         model = YOLO(self.model_path)
         results = model.predict(
             IMAGES_PATH,
-            conf=0.25,
-            iou=0.7,
+            conf=0.15,
+            iou=0.3,
             device=0
         )
 
