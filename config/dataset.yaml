@@ -1,4 +1,9 @@
-path: /home/neo/Downloads/ultralytics/dataset
+path: /home/neo/Downloads/torchFlow/dataset
+# change paths to the tiled dataset during training eg.
+# /home/neo/Downloads/torchFlow/dataset for training on 3232 res.
+# /home/neo/Downloads/torchFlow/dataset-1280 for training on 1280 res.
+# /home/neo/Downloads/torchFlow/dataset-512 for training on 512 res.
+# /home/neo/Downloads/torchFlow/dataset-256 for training on 256 res.
 train: images/train
 val: images/test
 test: images/predict
