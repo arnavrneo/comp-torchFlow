@@ -36,6 +36,3 @@ if __name__ == "__main__":
     val(
         ckpt=args.ckpt
     )
-
-
-# python val.py -m <model-ckpt.pt> -i <img-dir> -d <coco-annot-for-set.json> -c 0.3
