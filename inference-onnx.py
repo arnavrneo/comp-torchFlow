@@ -4,11 +4,8 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from exif import Image
-from PIL import Image
-from ensemble_boxes import *
 import matplotlib.pyplot as plt
 import cv2
-import pybboxes as pbx
 import onnxruntime
 from utils import nms, xywh2xyxy, load_img
 import argparse
@@ -40,7 +37,7 @@ class ONNXInference():
         output_names = [model_output[i].name for i in range(len(model_output))] # list of output names
 
         # Loading images
-        image, image_height, image_width, input_height, input_width, input_tensor = load_img(self.img_path, input_shape, )
+        image, image_height, image_width, input_height, input_width, input_tensor = load_img(self.img_path, input_shape)
 
         # Run
         start = time.time()
