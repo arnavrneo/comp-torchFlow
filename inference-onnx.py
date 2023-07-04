@@ -38,16 +38,14 @@ class ONNXInference():
 
         GEO_TAG_URL = []
         PRED_CT = []
-
+        
+        print("Doing inference...")
         for i in os.listdir(self.img_path):
             # Loading images
             image, image_height, image_width, input_height, input_width, input_tensor = load_img(self.img_path + i, input_shape)
 
             # Run
-            start = time.time()
             outputs = ort_session.run(output_names, {input_names[0]: input_tensor})[0] # ONNX output as numpy array
-            end = time.time()
-            print(f"Time for prediction: {end-start}")
             predictions = np.squeeze(outputs).T
             CONF_THRESHOLD = self.conf_thres
             scores = np.max(predictions[:, 4:], axis=1)
