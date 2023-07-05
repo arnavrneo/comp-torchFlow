@@ -59,6 +59,7 @@ class YOLOInference():
             IMAGES_PATH,
             conf=0.15,
             iou=0.3,
+            imgsz=3232,
             device=device,
             save=self.save_images
         )
