@@ -47,7 +47,7 @@ class ONNXInference():
         mAP_Train = []
         mAP_Test = []
 
-        for i in os.listdir(self.img_path):
+        for i in sorted(os.listdir(self.img_path)):
             # Loading images
             image, image_height, image_width, input_height, input_width, input_tensor = load_img(Path(self.img_path, i).as_posix(), input_shape)
 
@@ -55,7 +55,7 @@ class ONNXInference():
             start = time.time()
             outputs = ort_session.run(output_names, {input_names[0]: input_tensor})[0] # ONNX output as numpy array
             end = time.time()
-            print(f"Time for prediction: {end-start}")
+            print(f"Time for predicting {i}: {end-start}")
             predictions = np.squeeze(outputs).T
             CONF_THRESHOLD = self.conf_thres
             scores = np.max(predictions[:, 4:], axis=1)
