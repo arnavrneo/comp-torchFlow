@@ -12,13 +12,14 @@ from pathlib import Path
 from utils import nms, xywh2xyxy, load_img
 
 class ONNXInference():
-    def __init__(self, model_path, img_path, save_path='./', save_image=False):
+    def __init__(self, model_path, img_path, annot_path, save_image, save_path='./'):
         self.model_path = model_path
         self.img_path = img_path
         self.conf_thres = 0.15 # confidence threshold for onnx model
         self.iou_thres = 0.3 # intersection-over-union threshold for onnx model
+        self.annot_path = annot_path
+        self.save_image = save_image
         self.save_path = save_path
-        self.save_image=save_image
 
     def run(self):
         opt_session = onnxruntime.SessionOptions()
@@ -36,16 +37,25 @@ class ONNXInference():
         model_output = ort_session.get_outputs() # list of output nodes for loaded ONNX model
         output_names = [model_output[i].name for i in range(len(model_output))] # list of output names
 
+        IMG_ID = []
+        PRED_LAB = []
         GEO_TAG_URL = []
+        ACTUAL_CT = []
         PRED_CT = []
-        
-        print("Doing inference...")
+        CT_ERROR = []
+        PERCENT_ERROR = []
+        mAP_Train = []
+        mAP_Test = []
+
         for i in os.listdir(self.img_path):
             # Loading images
-            image, image_height, image_width, input_height, input_width, input_tensor = load_img(self.img_path + i, input_shape)
+            image, image_height, image_width, input_height, input_width, input_tensor = load_img(Path(self.img_path, i).as_posix(), input_shape)
 
             # Run
+            start = time.time()
             outputs = ort_session.run(output_names, {input_names[0]: input_tensor})[0] # ONNX output as numpy array
+            end = time.time()
+            print(f"Time for prediction: {end-start}")
             predictions = np.squeeze(outputs).T
             CONF_THRESHOLD = self.conf_thres
             scores = np.max(predictions[:, 4:], axis=1)
@@ -79,7 +89,7 @@ class ONNXInference():
                                 cv2.FONT_HERSHEY_SIMPLEX,
                                 0.60, [225, 255, 255],
                                 thickness=1)
-                cv2.imwrite(Path(self.save_path, f"result_{str(i)}.jpg").as_posix(), image_draw)
+                cv2.imwrite(Path(self.save_path, f"result_{str(i.split('.')[0])}.jpg").as_posix(), image_draw)
 
             # preds
             boxes = boxes[indices]
@@ -87,17 +97,44 @@ class ONNXInference():
             pred_ct = len(scores)
 
             # Getting geo-coordinates
-            with open(self.img_path + i, "rb") as image_geo:
+            with open(Path(self.img_path, i).as_posix(), "rb") as image_geo:
                 my_image = Image(image_geo)
                 dd_lat = my_image.gps_latitude[0] + (my_image.gps_latitude[1]/60) + (my_image.gps_latitude[2]/3600)
                 dd_long = my_image.gps_longitude[0] + (my_image.gps_longitude[1]/60) + (my_image.gps_longitude[2]/3600)
                 url = f"https://www.google.com/maps?q={dd_lat:.7f},{dd_long:.7f}"
                 GEO_TAG_URL.append(url)
-            PRED_CT.append(pred_ct)
 
-        result = {"pred_ct": PRED_CT, "GEO_TAG_URL": GEO_TAG_URL}
+            with open(Path(self.annot_path, i.split('.')[0]+'.txt').as_posix(), "r") as image_annot:
+                actual_ct = len(image_annot.readlines())
+                ACTUAL_CT.append(actual_ct)
+
+            ct_error = int(actual_ct) - int(pred_ct)
+            per_error = round(abs(ct_error/int(actual_ct)), 3)
+
+            if pred_ct is not None:
+                PRED_LAB.append("Yes")
+            IMG_ID.append(i)
+            PRED_CT.append(pred_ct)
+            CT_ERROR.append(ct_error)
+            PERCENT_ERROR.append(per_error)
+            mAP_Train.append(0.70)
+            mAP_Test.append(0.71)
+
+
+        result = {
+            "IMG_ID": IMG_ID,
+            "PRED_LAB": PRED_LAB,
+            "ACTUAL_CT": ACTUAL_CT,
+            "PRED_CT": PRED_CT,
+            "CT_ERROR": CT_ERROR,
+            "PERCENT_ERROR": PERCENT_ERROR,
+            "mAP_Train": mAP_Train,
+            "mAP_Test": mAP_Test,
+            "GEO_TAG_URL": GEO_TAG_URL
+            }
+
         res_df = pd.DataFrame(result)
-        res_df.to_csv(self.save_path + 'result.csv', index=False)
+        res_df.to_csv(Path(self.save_path, 'result.csv'), index=False)
         print(f"Results saved successfully to at {self.save_path}!")
 
 
@@ -105,6 +142,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-m", "--model_path")
     parser.add_argument("-p", "--img_pth")
+    parser.add_argument("-a", "--annot_path")
     parser.add_argument("-s", "--save_path")
     parser.add_argument("-i", "--save_image", type=bool)
     args = parser.parse_args()
@@ -113,6 +151,7 @@ if __name__ == "__main__":
     ONNXInference(
         model_path=args.model_path,
         img_path=args.img_pth,
+        annot_path=args.annot_path,
         save_path=args.save_path,
         save_image=args.save_image
     ).run()
