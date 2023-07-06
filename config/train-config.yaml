@@ -7,7 +7,7 @@ mode: train  # (str) YOLO mode, i.e. train, val, predict, export, track, benchma
 # Train settings -------------------------------------------------------------------------------------------------------
 model:  # (str, optional) path to model file, i.e. yolov8n.pt, yolov8n.yaml
 data: config/dataset.yaml # (str, optional) path to data file, i.e. coco128.yaml
-epochs: 60  # 30 epochs for training on dataset
+epochs: 60  # 60 epochs for training on dataset original on 3232
             # 30 epochs for training on dataset-1280
             # 30 epochs for training on dataset-512
             # 40 epochs for training on dataset-256
