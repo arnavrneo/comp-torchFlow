@@ -6,3 +6,7 @@
 
 ### Team: torchFlow
 #### Members
+
+Arnav Raina (Team Leader)
+
+Himanshu Nayal
