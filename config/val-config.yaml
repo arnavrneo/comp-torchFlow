@@ -1,7 +1,7 @@
 # Validation arguments
 
 data: config/dataset.yaml
-imgsz: 3232 # [640, 480]
+imgsz: [3232,2432] # [640, 480]
 batch: 2
 save_json: True
 save_hybrid: False
