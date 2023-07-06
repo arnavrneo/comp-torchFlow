@@ -117,8 +117,8 @@ class ONNXInference():
             PRED_CT.append(pred_ct)
             CT_ERROR.append(ct_error)
             PERCENT_ERROR.append(per_error)
-            mAP_Train.append(0.70)
-            mAP_Test.append(0.71)
+            mAP_Train.append(0.718)
+            mAP_Test.append(0.737)
 
 
         result = {
