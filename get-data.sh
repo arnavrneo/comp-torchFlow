@@ -15,7 +15,7 @@ name4=dataset-1280.zip
 wget $dataset1280$name4 -P $dir1 && unzip $dir1$name4 && rm $dir$name4
 echo 'Downloading dataset...'
 dir2='./models'
-url2=https://dl.dropboxusercontent.com/s/grgwkhv0zddmlrh/8l-1280-3232.onnx
+url2=https://dl.dropboxusercontent.com/s/grgwkhv0zddmlrh/torchFlow-onnx.onnx
 echo 'Downloading onnx model...'
 wget $url2 -P $dir2
 url3=https://dl.dropboxusercontent.com/s/dv916v4t5hn6qpu/torchFlow-ckpt.pt
