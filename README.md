@@ -6,3 +6,6 @@ This is our GitHub repository for **"Hackathon on Plastic-Free Rivers with Artif
 #### Members
 - Arnav Raina
 - Himanshu Nayal
+
+### Acknowledgements
+- Dataset tiling script: https://github.com/slanj/yolo-tiling
