@@ -101,7 +101,7 @@ class ONNXInference():
                 my_image = Image(image_geo)
                 dd_lat = my_image.gps_latitude[0] + (my_image.gps_latitude[1]/60) + (my_image.gps_latitude[2]/3600)
                 dd_long = my_image.gps_longitude[0] + (my_image.gps_longitude[1]/60) + (my_image.gps_longitude[2]/3600)
-                url = f"https://www.google.com/maps?q={dd_lat:.7f},{dd_long:.7f}"
+                url = f"https://www.google.com/maps?q={dd_lat:.7f}%2C{dd_long:.7f}"
                 GEO_TAG_URL.append(url)
 
             with open(Path(self.annot_path, i.split('.')[0]+'.txt').as_posix(), "r") as image_annot:
