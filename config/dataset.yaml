@@ -6,7 +6,7 @@ path: /home/neo/Downloads/torchFlow/dataset
 # /home/neo/Downloads/torchFlow/dataset-256 for training on 256 res.
 train: images/train
 val: images/test
-test: images/predict
+
 nc: 1
 names:
   0: plastic
