@@ -21,8 +21,8 @@ class YOLOInference():
         self.img_path = img_path # image path or source directory
         self.save_path = save_path # save directory for the submission.csv
         self.annot_path = annot_path # annotation path (YOLO-format.txt)
-        self.conf_thres = 0.05 # confidence threshold
-        self.iou_thres = 0.3 # iou threshold
+        self.conf_thres = 0.2 # confidence threshold
+        self.iou_thres = 0.7 # iou threshold
         self.save_images = save_images # predicted images will be saved in `runs` folder
 
     def run(self):
@@ -45,7 +45,7 @@ class YOLOInference():
                 url = f"https://www.google.com/maps?q={dd_lat:.7f}%2C{dd_long:.7f}"
                 GEO_TAG_URL.append(url)
                 mAP_Train.append(0.718)
-                mAP_Test.append(0.737)
+                mAP_Test.append(0.747)
 
             with open(Path(self.annot_path, IMAGE_IDS[i].split('.')[0]+'.txt').as_posix(), "r") as image_annot:
                 actual_ct = len(image_annot.readlines())
@@ -57,9 +57,9 @@ class YOLOInference():
         model = YOLO(self.model_path)
         results = model.predict(
             IMAGES_PATH,
-            conf=0.15,
-            iou=0.3,
-            imgsz=3232,
+            conf=0.2,
+            iou=0.7,
+            imgsz=3584,
             device=device,
             save=self.save_images
         )
