@@ -1,36 +1,28 @@
 import sys
-from tkinter import *
 import functools
+import tkinter as tk
+from tkinter import *
 import configparser
 from tkinter import messagebox
 from PIL import ImageTk, Image
 
 
-class LoginPage:
-    def __init__(self, window):
-        self.window = window
-        self.window.geometry('1190x718')
-        self.window.resizable(0, 0)
-        self.platform = sys.platform
-        if self.platform=="linux":
-            self.window.attributes('-zoomed', True) # for linux
-
-        else:
-            self.window.state('zoomed') # if mac or window
-
-        self.window.title('Login Page')
-        self.screen_width = self.window.winfo_screenwidth()
-        self.screen_height = self.window.winfo_screenheight()
+class LoginPage(Frame):
+    def __init__(self, master, screen_w, screen_h):
+        super().__init__()
+        self.master = master
+        self.screen_width = screen_w
+        self.screen_height = screen_h
         # ========================================================================
         # ============================background image============================
         # ========================================================================
         self.bg_frame = Image.open('resources/background1.png').resize((self.screen_width, self.screen_height))
         photo = ImageTk.PhotoImage(self.bg_frame)
-        self.bg_panel = Label(self.window, image=photo)
+        self.bg_panel = Label(self, image=photo)
         self.bg_panel.image = photo
         self.bg_panel.pack(fill='both', expand='yes')
         # ====== Login Frame =========================
-        self.lgn_frame = Frame(self.window, bg='#040405', width=1024, height=724)
+        self.lgn_frame = Frame(self, bg='#040405', width=1024, height=724)
         self.lgn_frame.place(x=400, y=150)
 
         # ========================================================================
@@ -177,6 +169,9 @@ class LoginPage:
         if username in config["Users"]:
             if config["Users"][username] == password:
                 messagebox.showinfo("Login Successful", f"Welcome, {username}!")
+                self.pack_forget() 
+                self.main_page = MainPage(self)
+                self.main_page.pack(fill=tk.BOTH, expand=True)
 
         else:
             messagebox.showerror("Login Failed", "Invalid username or password!")
@@ -198,14 +193,43 @@ class LoginPage:
             messagebox.showinfo("Signup Successful", "Account created successfully!")
         else:
             messagebox.showerror("Signup Failed", "Username already exists")
+
+
+class MainPage(Frame):
+    def __init__(self, master):
+        super().__init__()
+        self.master = master
+        label = Label(self, text="Welcome to the Main Page!")
+        label.pack(pady=20)
    
+
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.geometry('1190x718')
+        self.resizable(0, 0)
+        self.platform = sys.platform
+        if self.platform=="linux":
+            self.attributes('-zoomed', True) # for linux
+
+        else:
+            self.state('zoomed') # if mac or window
+
+        self.title('torchFlow')
+        self.screen_width = self.winfo_screenwidth()
+        self.screen_height = self.winfo_screenheight()
+
+        self.show_login_page()
+
+    def show_login_page(self):
+        self.login_page = LoginPage(self, self.screen_width, self.screen_height)
+        self.login_page.pack(fill=tk.BOTH, expand=True)
 
 
 
 def page():
-    window = Tk()
-    LoginPage(window)
-    window.mainloop()
+    app = App()
+    app.mainloop()
 
 
 if __name__ == '__main__':
