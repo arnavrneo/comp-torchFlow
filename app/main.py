@@ -1,3 +1,4 @@
+import sys
 from tkinter import *
 import functools
 import configparser
@@ -10,8 +11,13 @@ class LoginPage:
         self.window = window
         self.window.geometry('1190x718')
         self.window.resizable(0, 0)
-        # self.window.state('zoomed') # if mac or window
-        self.window.attributes('-zoomed', True) # for linux
+        self.platform = sys.platform
+        if self.platform=="linux":
+            self.window.attributes('-zoomed', True) # for linux
+
+        else:
+            self.window.state('zoomed') # if mac or window
+
         self.window.title('Login Page')
         self.screen_width = self.window.winfo_screenwidth()
         self.screen_height = self.window.winfo_screenheight()
@@ -204,3 +210,4 @@ def page():
 
 if __name__ == '__main__':
     page()
+    
