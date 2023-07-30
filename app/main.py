@@ -1,18 +1,24 @@
 import sys
 import functools
+import pandas as pd
 import tkinter as tk
 from tkinter import *
 import configparser
 from tkinter import messagebox
 from PIL import ImageTk, Image
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+# from tkinter import filedialog
 
 class LoginPage(Frame):
-    def __init__(self, master, screen_w, screen_h):
+    def __init__(self, master, screen_w, screen_h, exit_command):
         super().__init__()
         self.master = master
         self.screen_width = screen_w
         self.screen_height = screen_h
+        self.exit_command = exit_command
         # ========================================================================
         # ============================background image============================
         # ========================================================================
@@ -23,7 +29,9 @@ class LoginPage(Frame):
         self.bg_panel.pack(fill='both', expand='yes')
         # ====== Login Frame =========================
         self.lgn_frame = Frame(self, bg='#040405', width=1024, height=724)
-        self.lgn_frame.place(x=400, y=150)
+        x = (self.screen_width//2)-(1024//2)
+        y = (self.screen_height//2)-(724//2)
+        self.lgn_frame.place(x=x, y=y)
 
         # ========================================================================
         # ========================================================
@@ -81,7 +89,7 @@ class LoginPage(Frame):
         self.username_icon_label.image = photo
         self.username_icon_label.place(x=550, y=332)
 
-                # ========================================================================
+        # ========================================================================
         # ============================password====================================
         # ========================================================================
         self.password_label = Label(self.lgn_frame, text="Password", bg="#040405", fg="#4f4e4d",
@@ -166,12 +174,12 @@ class LoginPage(Frame):
         if "Users" not in config:
             config["Users"] = {}
 
-        if username in config["Users"]:
-            if config["Users"][username] == password:
-                messagebox.showinfo("Login Successful", f"Welcome, {username}!")
-                self.pack_forget() 
-                self.main_page = MainPage(self)
-                self.main_page.pack(fill=tk.BOTH, expand=True)
+        if username in config["Users"] and config["Users"][username] == password:
+            messagebox.showinfo("Login Successful", f"Welcome, {username}!")
+            self.pack_forget() 
+            self.main_page = Dashboard(self, self.screen_width, self.screen_height, self.exit_command)
+            self.main_page.pack(fill=BOTH, expand=True)
+
 
         else:
             messagebox.showerror("Login Failed", "Invalid username or password!")
@@ -195,12 +203,159 @@ class LoginPage(Frame):
             messagebox.showerror("Signup Failed", "Username already exists")
 
 
-class MainPage(Frame):
-    def __init__(self, master):
+class Dashboard(Frame):
+    def __init__(self, master, screen_w, screen_h, exit_command):
         super().__init__()
         self.master = master
-        label = Label(self, text="Welcome to the Main Page!")
-        label.pack(pady=20)
+        self.screen_width = screen_w
+        self.screen_height = screen_h
+        self.exit_command = exit_command
+
+        data = pd.read_csv("resources/results.csv")
+        data.columns = data.columns.str.strip()
+
+        preds = pd.read_csv("resources/preds.csv")
+        
+        #=======================LEFT FRAME========================
+        side_frame = Frame(self, bg="#4C2A85")
+        side_frame.pack(side="left", fill="y", ipadx=15)
+
+        label = Label(side_frame, text="Dashboard", bg="#4C2A85", fg="#FFF", font=('yu gothic ui', 25, "bold"))
+        label.pack(pady=50, padx=50)
+
+        label = Button(side_frame, text="Predict", command=self.predict, relief=FLAT, activebackground="#5c2a85", font=('yu gothic ui', 15, "bold"),
+                        borderwidth=0, background="#4C2A85", cursor="hand2", fg="white", highlightbackground="black",bd=3)
+        label.pack(pady=(20,0), fill='x', ipady=5)
+        
+        label = Button(side_frame, text="Nearby", command=self.nearby, relief=FLAT, activebackground="#5c2a85", font=('yu gothic ui', 15, "bold"),
+                        borderwidth=0, background="#4C2A85", cursor="hand2", fg="white", highlightbackground="black",bd=3)
+        label.pack(fill='x', ipady=5)
+
+        label = Button(side_frame, text="Back", command=self.back, relief=FLAT, activebackground="#5c2a85", font=('yu gothic ui', 15, "bold"),
+                        borderwidth=0, background="#4C2A85", cursor="hand2", fg="white", highlightbackground="black",bd=3)
+        label.pack(fill='x', ipady=5)
+        
+
+        label = Button(side_frame, text="Exit", command=self.exit_command, relief=FLAT, activebackground="#5c2a85", font=('yu gothic ui', 15, "bold"),
+                        borderwidth=0, background="#4C2A85", cursor="hand2", fg="white", highlightbackground="black",bd=3)
+        label.pack(fill='x', ipady=5)
+        
+
+        # ===================Plastic Density in Test Set===========
+
+        fig0 = Figure(figsize=(16,6))  
+        gs = fig0.add_gridspec(1, 3, wspace=0.3)
+
+        bar_width = 0.35
+        ax0 = fig0.add_subplot(gs[0])
+        ax0.bar(preds.index - bar_width/2, preds["ACTUAL_CT"], bar_width, label="Actual Count")
+        ax0.bar(preds.index - bar_width/2, preds["PRED_CT"], bar_width, label="Predicted Count")
+        ax0.set_title("Plastic Density")
+        ax0.set_xlabel("Images")
+        ax0.set_ylabel("Counts")
+        ax0.legend()
+
+        #================mAP50/mAP50-95============================
+        plt.rcParams["axes.prop_cycle"] = plt.cycler(
+        color=["#4C2A85", "#BE96FF", "#957DAD", "#5E366E", "#A98CCC"])
+
+        ax1 = fig0.add_subplot(gs[1])
+        ax1.plot(data["epoch"], data["metrics/mAP50(B)"], label="mAP50", marker="o")
+        ax1.plot(data["epoch"], data["metrics/mAP50-95(B)"], label="mAP50-95", marker="x")
+        ax1.set_title("mAP50/mAP50-95")
+        ax1.set_xlabel("Epochs")
+        ax1.set_ylabel("mAP")
+        ax1.legend()
+
+        #================Precision/Recall Curve============================
+        data['TPR'] = data['metrics/recall(B)']
+        data['FPR'] = 1 - data['metrics/precision(B)']
+        ax2 = fig0.add_subplot(gs[2])
+        ax2.plot(data['FPR'], data['TPR'], marker='o', linestyle='-', color='r')
+        ax2.set_title("ROC Curve")
+        ax2.set_xlabel("FPR")
+        ax2.set_ylabel("TPR")
+
+        # #================Losses============================
+
+        fig1 = Figure(figsize=(16,6))  
+        gs = fig1.add_gridspec(1, 3, wspace=0.3)
+
+        ax3 = fig1.add_subplot(gs[0])
+        ax3.plot(data["epoch"], data["train/dfl_loss"], label="train", marker="o")
+        ax3.plot(data["epoch"], data["val/dfl_loss"], label="val", marker="s")
+        ax3.set_title("Detection Focal Loss")
+        ax3.set_xlabel("Epochs")
+        ax3.set_ylabel("Loss")
+        ax3.legend()
+
+        ax4 = fig1.add_subplot(gs[1])
+        ax4.plot(data["epoch"], data["train/box_loss"], label="train", marker="o")
+        ax4.plot(data["epoch"], data["val/box_loss"], label="val", marker="s")
+        ax4.set_title("Box Loss")
+        ax4.set_xlabel("Epochs")
+        ax4.set_ylabel("Loss")
+        ax4.legend()
+
+        ax5 = fig1.add_subplot(gs[2])
+        ax5.plot(data["epoch"], data["train/cls_loss"], label="train", marker="o")
+        ax5.plot(data["epoch"], data["val/cls_loss"], label="val", marker="s")
+        ax5.set_title("Classification Loss")
+        ax5.set_xlabel("Epochs")
+        ax5.set_ylabel("Loss")
+        ax5.legend()
+
+        charts_frame = Frame(self)
+        charts_frame.pack()
+
+        upper_frame = Frame(charts_frame)
+        upper_frame.pack(fill="both", expand=True)
+
+        canvas0 = FigureCanvasTkAgg(fig0, upper_frame)
+        canvas0.draw()
+        canvas0.get_tk_widget().pack(side="left", fill="both", expand=True)
+
+        lower_frame = Frame(charts_frame)
+        lower_frame.pack(fill="both", expand=True)
+
+        canvas1 = FigureCanvasTkAgg(fig1, lower_frame)
+        canvas1.draw()
+        canvas1.get_tk_widget().pack(side="left", fill="both", expand=True)
+
+        
+    def predict(self):
+        login_page = PredictPage(self, self.screen_width, self.screen_height, self.exit_command)
+        login_page.pack(fill=tk.BOTH, expand=True)
+        self.destroy()
+
+    def nearby(self):
+        login_page = NearbyPage(self, self.screen_width, self.screen_height, self.exit_command)
+        login_page.pack(fill=tk.BOTH, expand=True)
+        self.destroy()
+
+    def back(self):
+        login_page= LoginPage(self, self.screen_width, self.screen_height, self.exit_command)
+        login_page.pack(fill=BOTH, expand=True)
+        self.destroy()
+
+
+class PredictPage(Frame):
+    def __init__(self, master, screen_w, screen_h, exit_command):
+        super().__init__()
+        self.master = master
+        self.screen_width = screen_w
+        self.screen_height = screen_h
+        self.exit_command = exit_command
+        print("Predict")
+
+class NearbyPage(Frame):
+    def __init__(self, master, screen_w, screen_h, exit_command):
+        super().__init__()
+        self.master = master
+        self.screen_width = screen_w
+        self.screen_height = screen_h
+        self.exit_command = exit_command
+        print("Nearby")
    
 
 class App(tk.Tk):
@@ -222,16 +377,14 @@ class App(tk.Tk):
         self.show_login_page()
 
     def show_login_page(self):
-        self.login_page = LoginPage(self, self.screen_width, self.screen_height)
-        self.login_page.pack(fill=tk.BOTH, expand=True)
+        login_page = LoginPage(self, self.screen_width, self.screen_height, self.exit_command)
+        login_page.pack(fill=tk.BOTH, expand=True)
 
-
-
-def page():
-    app = App()
-    app.mainloop()
-
+    def exit_command(self):
+        exit_command = messagebox.askyesno("Confirm Exit?")
+        if exit_command > 0:
+            self.destroy()
 
 if __name__ == '__main__':
-    page()
-    
+    app = App()
+    app.mainloop()
