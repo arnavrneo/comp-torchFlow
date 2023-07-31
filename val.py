@@ -32,6 +32,7 @@ def val(
     )
 
 if __name__ == "__main__":
+    # run !python config.config.py to set data directories according to the system
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-m", "--ckpt")
     args = parser.parse_args()

@@ -22,4 +22,5 @@ onnxruntime-gpu
 
 # Extras --------------------------------------
 psutil  # system utilization
+ttkthemes
 albumentations>=1.0.3
