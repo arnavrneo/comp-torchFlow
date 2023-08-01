@@ -1,20 +1,24 @@
 import sys
 import ast
+import time
+import requests
 import threading
 import functools
 import pandas as pd
 import configparser
 import tkinter as tk
 from tkinter import *
-from tkinter.ttk import Progressbar, Style
+from exif import Image as ex_img
 import tkinter.filedialog
 from tkinter import messagebox
 from PIL import ImageTk, Image
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from geopy.geocoders import Nominatim
+from tkinter.ttk import Progressbar, Style
 from tkinter.filedialog import askopenfile
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import time
+
 
 class LoginPage(Frame):
     def __init__(self, master, screen_w, screen_h, exit_command):
@@ -356,7 +360,16 @@ class PredictPage(Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.image_label = Label(self, text="Image(jpg,png)", bg="#454545", font=('yu gothic ui', 25, "bold"), highlightbackground="white", highlightthickness=2)
+        self.server_label = Label(self, text="Server Link", bg="#2E2E2E", fg="#ffffff",
+                                    font=("yu gothic ui", 13, "bold"))
+        self.server_label.place(x=self.screen_width*0.1, y=self.screen_height*0.1)
+
+        self.server_entry = Entry(self, highlightthickness=2, highlightbackground="#ffffff", relief=FLAT, bg="#454545", fg="#ffffff",
+                                    font=("yu gothic ui ", 12, "bold"), insertbackground = '#6b6a69')
+
+        self.server_entry.place(x=self.screen_width*0.2, y=self.screen_height*0.1)
+
+        self.image_label = Label(self, text="Image(jpg,png)", bg="#454545", font=('yu gothic ui', 25, "bold"), highlightbackground="#ffffff", highlightthickness=2)
         self.image_label.place(x=self.screen_width*0.1, y=self.screen_height*0.2, width=self.screen_width//2, height=self.screen_height//2)
 
         
@@ -381,29 +394,71 @@ class PredictPage(Frame):
         self.info_label11 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
         self.info_label11.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.2)
 
-        self.info_label20 = Label(self, text="Coordinates    :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
-        self.info_label20.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.26)
+        self.info_label20 = Label(self, text="Coordinates :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label20.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.28)
 
         self.info_label21 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
-        self.info_label21.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.26)
+        self.info_label21.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.28)
+
+        self.info_label30 = Label(self, text="City :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label30.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.36)
+
+        self.info_label31 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label31.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.36)
+
+        self.info_label40 = Label(self, text="Postal code :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label40.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.44)
+
+        self.info_label41 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label41.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.44)
+
+        self.info_label50 = Label(self, text="State :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label50.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.52)
+
+        self.info_label51 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label51.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.52)
+
+        self.info_label60 = Label(self, text="Country :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label60.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.60)
+
+        self.info_label61 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label61.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.60)
     
 
     def upload_image(self):
         self.image_path = tkinter.filedialog.askopenfilename(filetypes=[('Jpg Files', '*.jpg'),('PNG Files','*.png')])
-        print(self.image_path)
         if self.image_path:
             self.up_image = Image.open(self.image_path)
-            self.up_image = self.up_image.resize((1024, 1024), Image.LANCZOS)
-            self.photo = ImageTk.PhotoImage(self.up_image)
+            self.res_image = self.up_image.resize((1024, 1024), Image.LANCZOS)
+            self.photo = ImageTk.PhotoImage(self.res_image)
             self.image_label.config(text="", image=self.photo)
             self.image_label.image = self.photo
 
     def perform_prediction(self):
-        # client = Client("https://torchflow-detect-it.hf.space/")
-        # self.result = client.predict([self.image_path], api_name="/predict")
-        # self.result = ast.literal_eval(self.result)
-        time.sleep(7)
-        print("Done")
+        self.lat, self.long = get_coordinates(self.image_path)
+        self.info = get_info_from_coordinates(self.lat, self.long) 
+        
+        if self.info is not None:
+            self.city, self.postal_code, self.state, self.country = self.info
+            self.info_label21.config(text=f"{self.lat:.4f}° N, {self.long:.4f}° E", font=('yu gothic ui', 15, "bold"))
+            self.info_label31.config(text=f"{self.city}")
+            self.info_label41.config(text=f"{self.postal_code}")
+            self.info_label51.config(text=f"{self.state}")
+            self.info_label61.config(text=f"{self.country}")
+
+        self.server_link = self.server_entry.get()
+        if self.server_link.strip()=="":
+            messagebox.showerror("Prediction Failed", "Provide Server Link")
+
+        else:
+            if self.server_link[-1:]!="/":
+                self.server_link+="/"
+
+            self.url = f"{self.server_link}predict"
+            self.resp = requests.post(url=self.url, files=[('files', open(self.image_path, 'rb'))], verify=False)
+            self.result = self.resp.json()
+            print(self.result)
+
         self.after(0, self.stop_progress)
 
     
@@ -470,12 +525,7 @@ class App(tk.Tk):
         if exit_command > 0:
             self.destroy()
 
-if __name__ == '__main__':
-    # app = App()
-    # app.mainloop()
-    from geopy.geocoders import Nominatim
-
-    def get_city_from_coordinates(latitude, longitude):
+def get_info_from_coordinates(latitude, longitude):
         geolocator = Nominatim(user_agent="myGeocoder")
         location = geolocator.reverse((latitude, longitude), exactly_one=True)
 
@@ -487,16 +537,17 @@ if __name__ == '__main__':
             country = address.get('country', '')
             return city, postal_code, state, country
 
-
         return None
 
-    # Example usage
-    latitude = 37.7749  # Replace with your latitude value
-    longitude = -122.4194  # Replace with your longitude value
 
-    city, postal_code, state, country = get_city_from_coordinates(latitude, longitude)
-    if city:
-        print(f"The city name is: {city, postal_code, state, country }")
-    else:
-        print("City not found for the given coordinates.")
+def get_coordinates(image_path):
+    my_image = ex_img(image_path)
+    lat = my_image.gps_latitude[0] + (my_image.gps_latitude[1]/60) + (my_image.gps_latitude[2]/3600)
+    long = my_image.gps_longitude[0] + (my_image.gps_longitude[1]/60) + (my_image.gps_longitude[2]/3600)
 
+    return lat, long
+
+if __name__ == '__main__':
+    app = App()
+    app.mainloop()
+    
