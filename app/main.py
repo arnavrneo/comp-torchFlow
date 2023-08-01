@@ -1,16 +1,20 @@
 import sys
+import ast
+import threading
 import functools
 import pandas as pd
+import configparser
 import tkinter as tk
 from tkinter import *
-import configparser
+from tkinter.ttk import Progressbar, Style
+import tkinter.filedialog
 from tkinter import messagebox
 from PIL import ImageTk, Image
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from tkinter.filedialog import askopenfile
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-# from tkinter import filedialog
+import time
 
 class LoginPage(Frame):
     def __init__(self, master, screen_w, screen_h, exit_command):
@@ -194,7 +198,10 @@ class LoginPage(Frame):
         if "Users" not in config:
             config["Users"] = {}
         
-        if username not in config["Users"]:
+        if len(username)==0 or len(password)==0:
+            messagebox.showerror("Signup Failed", "All entries are not filled")
+        
+        elif username not in config["Users"]:
             config["Users"][username] = password
             with open("login.ini", "w") as config_file:
                 config.write(config_file)
@@ -341,12 +348,90 @@ class Dashboard(Frame):
 
 class PredictPage(Frame):
     def __init__(self, master, screen_w, screen_h, exit_command):
-        super().__init__()
+        super().__init__(background="#2E2E2E")
         self.master = master
         self.screen_width = screen_w
         self.screen_height = screen_h
         self.exit_command = exit_command
-        print("Predict")
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.image_label = Label(self, text="Image(jpg,png)", bg="#454545", font=('yu gothic ui', 25, "bold"), highlightbackground="white", highlightthickness=2)
+        self.image_label.place(x=self.screen_width*0.1, y=self.screen_height*0.2, width=self.screen_width//2, height=self.screen_height//2)
+
+        
+        self.show_image = Button(self, text="Upload Image", command=self.upload_image)
+        self.show_image.place(x=self.screen_width*0.1,y=self.screen_height*0.725)
+
+        self.predict_image = Button(self, text="Run Prediction", command=self.run_prediction)
+        self.predict_image.place(x=self.screen_width*0.535,y=self.screen_height*0.725)
+
+        self.progress_style = Style()
+        self.progress_style.theme_use('default')  
+        self.progress_style.configure("Custom.Horizontal.TProgressbar", thickness=20, troughcolor='green', background='black')
+        self.pb = Progressbar(
+                        self,
+                        orient='horizontal',
+                        mode='indeterminate',
+                        length=100,
+                    )
+        self.info_label10 = Label(self, text="Plastic Counts :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label10.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.2)
+
+        self.info_label11 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label11.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.2)
+
+        self.info_label20 = Label(self, text="Coordinates    :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label20.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.26)
+
+        self.info_label21 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label21.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.26)
+    
+
+    def upload_image(self):
+        self.image_path = tkinter.filedialog.askopenfilename(filetypes=[('Jpg Files', '*.jpg'),('PNG Files','*.png')])
+        print(self.image_path)
+        if self.image_path:
+            self.up_image = Image.open(self.image_path)
+            self.up_image = self.up_image.resize((1024, 1024), Image.LANCZOS)
+            self.photo = ImageTk.PhotoImage(self.up_image)
+            self.image_label.config(text="", image=self.photo)
+            self.image_label.image = self.photo
+
+    def perform_prediction(self):
+        # client = Client("https://torchflow-detect-it.hf.space/")
+        # self.result = client.predict([self.image_path], api_name="/predict")
+        # self.result = ast.literal_eval(self.result)
+        time.sleep(7)
+        print("Done")
+        self.after(0, self.stop_progress)
+
+    
+    def run_prediction(self):
+        if self.image_path:
+        
+            self.pb.pack(pady=100)
+            self.after(0, self.update_progress)  # Use after() to call update_progress() after 0 milliseconds
+
+            # Perform the prediction in a separate thread
+            prediction_thread = threading.Thread(target=self.perform_prediction)
+            prediction_thread.start()
+            
+        else:
+            messagebox.showerror("Process Failed", "No image selected!")
+
+    def update_progress(self):
+        self.pb.start()
+
+    def stop_progress(self):
+        self.pb.stop()
+        self.pb.pack_forget() 
+
+    def back(self):
+        login_page= PredictPage(self, self.screen_width, self.screen_height, self.exit_command)
+        login_page.pack(fill=BOTH, expand=True)
+        self.destroy()
+
 
 class NearbyPage(Frame):
     def __init__(self, master, screen_w, screen_h, exit_command):
@@ -386,5 +471,32 @@ class App(tk.Tk):
             self.destroy()
 
 if __name__ == '__main__':
-    app = App()
-    app.mainloop()
+    # app = App()
+    # app.mainloop()
+    from geopy.geocoders import Nominatim
+
+    def get_city_from_coordinates(latitude, longitude):
+        geolocator = Nominatim(user_agent="myGeocoder")
+        location = geolocator.reverse((latitude, longitude), exactly_one=True)
+
+        if location is not None:
+            address = location.raw['address']
+            city = address.get('city', '')
+            postal_code = address.get('postcode', '')
+            state = address.get('state', '')
+            country = address.get('country', '')
+            return city, postal_code, state, country
+
+
+        return None
+
+    # Example usage
+    latitude = 37.7749  # Replace with your latitude value
+    longitude = -122.4194  # Replace with your longitude value
+
+    city, postal_code, state, country = get_city_from_coordinates(latitude, longitude)
+    if city:
+        print(f"The city name is: {city, postal_code, state, country }")
+    else:
+        print("City not found for the given coordinates.")
+
