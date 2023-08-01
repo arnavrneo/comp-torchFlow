@@ -45,7 +45,7 @@ class YOLOInference():
                 url = f"https://www.google.com/maps?q={dd_lat:.7f}%2C{dd_long:.7f}"
                 GEO_TAG_URL.append(url)
                 mAP_Train.append(0.718)
-                mAP_Test.append(0.747)
+                mAP_Test.append(0.749)
 
             with open(Path(self.annot_path, IMAGE_IDS[i].split('.')[0]+'.txt').as_posix(), "r") as image_annot:
                 actual_ct = len(image_annot.readlines())
