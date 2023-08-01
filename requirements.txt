@@ -24,3 +24,11 @@ onnxruntime-gpu
 psutil  # system utilization
 ttkthemes
 albumentations>=1.0.3
+
+# Server --------------------------------------
+fastapi
+uvicorn
+python-multipart
+nest-asyncio
+pyngrok
+starlette
