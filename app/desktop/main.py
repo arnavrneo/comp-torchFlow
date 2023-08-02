@@ -429,7 +429,7 @@ class PredictPage(Frame):
         self.info_label61.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.60)
 
         self.back_btn = Button(self, text="Back", command=self.back)
-        self.back_btn.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.68)
+        self.back_btn.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.725)
 
     def upload_image(self):
         self.image_path = tkinter.filedialog.askopenfilename(filetypes=[('Jpg Files', '*.jpg'),('PNG Files','*.png')])
@@ -544,7 +544,7 @@ class NearbyPage(Frame):
 
         note = "Note: Thank you for using our app! To find the nearest polluted river, please search for the location you're interested in. Our app will then provide you with information about the nearest polluted river based on our database. Let's work together to protect our environment!"
         self.note_label = Label(self, text=note, bg="#000000", fg="#ffffff",
-                                    font=("yu gothic ui", 13, "bold"), wraplength=self.screen_width*0.8, anchor=W, justify=CENTER, highlightthickness=2)
+                                    font=("yu gothic ui", 13, "bold"), wraplength=self.screen_width*0.8, anchor=W, justify=LEFT, highlightthickness=2)
         self.note_label.place(x=self.screen_width*0.1, y=self.screen_height*0.15)
 
         self.map_widget = TkinterMapView(self, width=self.screen_width*0.8, height=self.screen_height*0.6, corner_radius=2)
