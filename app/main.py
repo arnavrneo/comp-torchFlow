@@ -3,11 +3,13 @@ import socket
 import requests
 import threading
 import functools
+import numpy as np
 import pandas as pd
 import configparser
 import tkinter as tk
 import urllib.request
 from tkinter import *
+import haversine as hs
 import tkinter.filedialog
 from PIL import ImageTk, Image
 from tkinter import messagebox
@@ -359,7 +361,7 @@ class PredictPage(Frame):
         self.screen_height = screen_h
         self.exit_command = exit_command
         self.create_widgets()
-        self.check_and_display_result()
+        self.check_and_display_conn_result()
 
     def create_widgets(self):
         self.server_label = Label(self, text="Server Link", bg="#2E2E2E", fg="#ffffff",
@@ -390,40 +392,40 @@ class PredictPage(Frame):
                         mode='indeterminate',
                         length=100,
                     )
-        self.info_label10 = Label(self, text="Plastic Counts :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label10 = Label(self, text="Plastic Counts :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label10.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.2)
 
-        self.info_label11 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label11 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label11.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.2)
 
-        self.info_label20 = Label(self, text="Coordinates :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label20 = Label(self, text="Coordinates :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label20.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.28)
 
-        self.info_label21 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label21 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label21.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.28)
 
-        self.info_label30 = Label(self, text="City :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label30 = Label(self, text="City :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label30.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.36)
 
-        self.info_label31 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label31 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label31.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.36)
 
-        self.info_label40 = Label(self, text="Postal code :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label40 = Label(self, text="Postal code :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label40.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.44)
 
-        self.info_label41 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label41 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label41.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.44)
 
-        self.info_label50 = Label(self, text="State :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label50 = Label(self, text="State :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label50.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.52)
 
-        self.info_label51 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label51 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label51.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.52)
 
-        self.info_label60 = Label(self, text="Country :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label60 = Label(self, text="Country :", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label60.place(x=(self.screen_width*0.12 + self.screen_width//2), y=self.screen_height*0.60)
 
-        self.info_label61 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 25, "bold"))
+        self.info_label61 = Label(self, text="NA", bg="#2E2E2E", fg="white", font=('yu gothic ui', 15, "bold"))
         self.info_label61.place(x=(self.screen_width*0.28 + self.screen_width//2), y=self.screen_height*0.60)
 
         self.back_btn = Button(self, text="Back", command=self.back)
@@ -445,10 +447,16 @@ class PredictPage(Frame):
         if self.info is not None:
             self.city, self.postal_code, self.state, self.country = self.info
             self.info_label21.config(text=f"{self.lat:.4f}° N, {self.long:.4f}° E", font=('yu gothic ui', 15, "bold"))
-            self.info_label31.config(text=f"{self.city}")
-            self.info_label41.config(text=f"{self.postal_code}")
-            self.info_label51.config(text=f"{self.state}")
-            self.info_label61.config(text=f"{self.country}")
+            if self.city.strip()!="":
+                self.info_label31.config(text=f"{self.city}")
+            if self.postal_code.strip()!="":
+                self.info_label41.config(text=f"{self.postal_code}")
+            if self.state.strip()!="":
+                self.info_label51.config(text=f"{self.state}")
+            if self.country.strip()!="":
+                self.info_label61.config(text=f"{self.country}")
+
+            self.info_label11.config(text="")
 
         self.server_link = self.server_entry.get()
         if self.server_link.strip()=="":
@@ -461,15 +469,17 @@ class PredictPage(Frame):
             self.url = f"{self.server_link}predict/"
             self.resp = requests.post(url=self.url, files=[('files', open(self.image_path, 'rb'))], verify=False)
             self.result = self.resp.json()
-            print(self.result)
+            count = self.result['file'][0]['PRED_CT']
+            geo_tag_url = self.result['file'][0]['GEO_TAG_URL']
+            self.info_label11.config(text=f"{count}")
+            print(count, geo_tag_url)
 
         self.after(0, self.stop_progress)
 
     
     def run_prediction(self):
         if self.image_path:
-        
-            self.pb.pack(pady=100)
+            self.pb.pack(pady=20)
             self.after(0, self.update_progress)  # Use after() to call update_progress() after 0 milliseconds
 
             # Perform the prediction in a separate thread
@@ -493,16 +503,16 @@ class PredictPage(Frame):
 
     def check_internet_connection(self):
         try:
-            urllib.request.urlopen('http://www.google.com', timeout=1)
+            socket.create_connection(("1.1.1.1", 53))
             return True
-        except urllib.error.URLError:
+        except:
             return False
     
-    def check_and_display_result(self):
+    def check_and_display_conn_result(self):
         if not self.check_internet_connection():
             messagebox.showerror("Error", "No internet connection!")
         
-        self.after(5000, self.check_and_display_result)
+        self.after(5000, self.check_and_display_conn_result)
 
 
 class NearbyPage(Frame):
@@ -512,8 +522,9 @@ class NearbyPage(Frame):
         self.screen_width = screen_w
         self.screen_height = screen_h
         self.exit_command = exit_command
+        self.coords = pd.read_csv("resources/coords.csv")
         self.create_widgets()
-        self.check_and_display_result()
+        self.check_and_display_conn_result()
 
     def create_widgets(self):
         self.address_label = Label(self, text="Address: ", bg="#2E2E2E", fg="#ffffff",
@@ -521,15 +532,18 @@ class NearbyPage(Frame):
         self.address_label.place(x=self.screen_width*0.1, y=self.screen_height*0.1)
 
         self.address_entry = Entry(self, highlightthickness=2, highlightbackground="#ffffff", relief=FLAT, bg="#454545", fg="#ffffff",
-                                    font=("yu gothic ui ", 12, "bold"), width=100, insertbackground = '#6b6a69')
+                                    font=("yu gothic ui ", 12, "bold"), width=70, insertbackground = '#6b6a69')
         
         self.address_entry.place(x=self.screen_width*0.18, y=self.screen_height*0.1)
+
+        self.search_btn = Button(self, text="Search", command=self.search)
+        self.search_btn.place(x=self.screen_width*0.6, y=self.screen_height*0.1)
 
         self.map_widget = TkinterMapView(self, width=self.screen_width*0.8, height=self.screen_height*0.6, corner_radius=2)
         self.map_widget.place(x=self.screen_width*0.18, y=self.screen_height*0.2)
         self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
-        self.map_widget.set_address("Ho Chi Minh City, Vietnam.", marker=True)
+        self.map_widget.set_address("Delhi, India", marker=True)
 
         self.back_btn = Button(self, text="Back", command=self.back)
         self.back_btn.place(x=self.screen_width*0.1, y=self.screen_height*0.2)
@@ -541,16 +555,16 @@ class NearbyPage(Frame):
 
     def check_internet_connection(self):
         try:
-            urllib.request.urlopen('http://www.google.com', timeout=1)
+            socket.create_connection(("1.1.1.1", 53))
             return True
-        except urllib.error.URLError:
+        except:
             return False
     
-    def check_and_display_result(self):
+    def check_and_display_conn_result(self):
         if not self.check_internet_connection():
             messagebox.showerror("Error", "No internet connection!")
         
-        self.after(5000, self.check_and_display_result)
+        self.after(5000, self.check_and_display_conn_result)
 
     def get_user_location_by_address(self):
         self.address = self.address_entry.get()
@@ -561,6 +575,23 @@ class NearbyPage(Frame):
         else:
             return None
         
+    def get_nearby_locations(self):
+        in_lat, in_long = self.get_user_location_by_address()
+        loc1 = (in_lat, in_long)
+        min_distance = np.inf
+        req_lat = 0.0
+        req_long = 0.0
+        for lat, long in zip(self.coords['LAT'].values, self.coords['LONG'].values):
+            dis_km = hs.haversine(loc1, (lat, long))
+            if dis_km < min_distance:
+                min_distance, req_lat, req_long = dis_km, lat, long
+
+        return req_lat, req_long, min_distance
+
+    def search(self):
+        lat, long, distance = self.get_nearby_locations()
+        city, _ , state, country = get_info_from_coordinates(lat, long)
+        self.map_widget.set_address(f"{city},{state},{country}", marker=True)
    
 
 class App(tk.Tk):
@@ -580,7 +611,7 @@ class App(tk.Tk):
         self.screen_height = self.winfo_screenheight()
 
         self.show_login_page()
-        self.check_and_display_result()
+        self.check_and_display_conn_result()
 
     def show_login_page(self):
         login_page = LoginPage(self, self.screen_width, self.screen_height, self.exit_command)
@@ -598,11 +629,11 @@ class App(tk.Tk):
         except:
             return False
     
-    def check_and_display_result(self):
+    def check_and_display_conn_result(self):
         if not self.check_internet_connection():
             messagebox.showerror("Error", "No internet connection!")
         
-        self.after(5000, self.check_and_display_result)
+        self.after(5000, self.check_and_display_conn_result)
 
 
 def get_info_from_coordinates(latitude, longitude):
@@ -631,4 +662,4 @@ def get_coordinates(image_path):
 if __name__ == '__main__':
     app = App()
     app.mainloop()
-            
+
