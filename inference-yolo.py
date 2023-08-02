@@ -14,8 +14,8 @@ class YOLOInference():
                 model_path,
                 img_path,
                 save_path,
-                annot_path,
-                save_images
+                save_images,
+                annot_path=None
             ):
         self.model_path = model_path # path to yolo checkpoint
         self.img_path = img_path # image path or source directory
@@ -33,6 +33,8 @@ class YOLOInference():
         PRED_LAB = []
         ACTUAL_CT = []
         PRED_CT = []
+        CT_ERROR = []
+        PERCENT_ERROR = []
         mAP_Train = []
         mAP_Test = []
 
@@ -45,11 +47,16 @@ class YOLOInference():
                 url = f"https://www.google.com/maps?q={dd_lat:.7f}%2C{dd_long:.7f}"
                 GEO_TAG_URL.append(url)
                 mAP_Train.append(0.718)
-                mAP_Test.append(0.747)
+                mAP_Test.append(0.749)
 
-            with open(Path(self.annot_path, IMAGE_IDS[i].split('.')[0]+'.txt').as_posix(), "r") as image_annot:
-                actual_ct = len(image_annot.readlines())
-                ACTUAL_CT.append(actual_ct)
+            if self.annot_path is not None:
+                with open(Path(self.annot_path, IMAGE_IDS[i].split('.')[0]+'.txt').as_posix(), "r") as image_annot:
+                    actual_ct = len(image_annot.readlines())
+                    ACTUAL_CT.append(actual_ct)
+            else:
+                ACTUAL_CT.append("N/A")
+                CT_ERROR.append("N/A")
+                PERCENT_ERROR.append("N/A")
 
         # Prediction using YOLO model
         device = torch.device(0 if torch.cuda.is_available() else 'cpu')
@@ -70,9 +77,10 @@ class YOLOInference():
             if PRED_CT is not None:
                 PRED_LAB.append("Yes")
 
-        CT_ERROR = list(np.array(ACTUAL_CT) - np.array(PRED_CT)) # count error
-        PERCENT_ERROR = list(abs(np.array(CT_ERROR)/np.array(ACTUAL_CT)).round(3)) # percentage error
-
+        if self.annot_path is not None:
+          CT_ERROR = list(np.array(ACTUAL_CT) - np.array(PRED_CT)) # count error
+          PERCENT_ERROR = list(abs(np.array(CT_ERROR)/np.array(ACTUAL_CT)).round(3)) # percentage error
+        
         result = {
             "IMG_ID": IMAGE_IDS,
             "PRED_LAB": PRED_LAB,

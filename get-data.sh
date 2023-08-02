@@ -15,9 +15,10 @@ name4=dataset-1280.zip
 wget $dataset1280$name4 -P $dir1 && unzip $dir1$name4 && rm $dir$name4
 echo 'Downloading dataset...'
 dir2='./models'
-url2=https://www.dropbox.com/scl/fi/tt4n21aav1vfhia7ujrkp/torchFlow-ckpt.onnx?rlkey=3ewx3fwhwi3g0dspi4kxzfsyf&dl=0
+url2=https://www.dropbox.com/scl/fi/vqytmc8532x7ov805bu6z/torchFlow-ckpt.onnx?rlkey=2wg8s6x829aaoqed56jj7ug7y&dl=0
 echo 'Downloading onnx model...'
-wget $url2 -P $dir2
+wget $url2 -O torchflow-ckpt.onnx
+mv torchflow-ckpt.onnx models/
 url3=https://dl.dropboxusercontent.com/s/dv916v4t5hn6qpu/torchFlow-ckpt.pt
 echo 'Downloading yolo checkpoint...'
 wget $url3 -P $dir2
