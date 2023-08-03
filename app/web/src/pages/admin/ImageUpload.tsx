@@ -31,7 +31,7 @@ const ImageUpload = (props) => {
             }
         };
 
-        fetch(url + "predict", reqOptions)
+        fetch(url + "predict/", reqOptions)
             .then((Response) => {
                 // uploadToParent(Response);
                 return Response.json()
