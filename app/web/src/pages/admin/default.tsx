@@ -186,6 +186,7 @@ export default function UserReports() {
             <ComplexTable
               columnsData={columnsDataComplex}
               tableData={(data as unknown) as TableData[]}
+	      threshold={thresh}
             />
           </SimpleGrid>
           <Card>
