@@ -29,7 +29,7 @@ app = FastAPI(middleware=middleware)
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"If you see this, ": "it means everything's alright."}
 
 @app.post('/predict/')
 async def predict(
@@ -55,9 +55,10 @@ async def predict(
     return {"file": res}
 
 
-
-ngrok_tunnel = ngrok.connect(8000)
 ngrok.set_auth_token("2THhoVviVOXuBq97RU9WW095Vtx_6pDFzgtkzRocdaTdBeVG7")
+ngrok_tunnel = ngrok.connect(
+    addr=8000, 
+    domain="moving-legally-boar.ngrok-free.app")
 print('Public URL:', ngrok_tunnel.public_url)
 nest_asyncio.apply()
 
