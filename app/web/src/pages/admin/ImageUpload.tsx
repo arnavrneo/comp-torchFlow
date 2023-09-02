@@ -31,7 +31,7 @@ const ImageUpload = (props) => {
             }
         };
 
-        fetch(url + "predict/", reqOptions)
+        fetch("https://moving-legally-boar.ngrok-free.app/" + "predict/", reqOptions)
             .then((Response) => {
                 // uploadToParent(Response);
                 return Response.json()
