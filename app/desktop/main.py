@@ -364,14 +364,14 @@ class PredictPage(Frame):
         self.check_and_display_conn_result()
 
     def create_widgets(self):
-        self.server_label = Label(self, text="Server Link", bg="#2E2E2E", fg="#ffffff",
-                                    font=("yu gothic ui", 13, "bold"))
-        self.server_label.place(x=self.screen_width*0.1, y=self.screen_height*0.1)
+        # self.server_label = Label(self, text="Server Link", bg="#2E2E2E", fg="#ffffff",
+        #                             font=("yu gothic ui", 13, "bold"))
+        # self.server_label.place(x=self.screen_width*0.1, y=self.screen_height*0.1)
 
-        self.server_entry = Entry(self, highlightthickness=2, highlightbackground="#ffffff", relief=FLAT, bg="#454545", fg="#ffffff",
-                                    font=("yu gothic ui ", 12, "bold"), width=70, insertbackground = '#6b6a69')
+        # self.server_entry = Entry(self, highlightthickness=2, highlightbackground="#ffffff", relief=FLAT, bg="#454545", fg="#ffffff",
+        #                             font=("yu gothic ui ", 12, "bold"), width=70, insertbackground = '#6b6a69')
 
-        self.server_entry.place(x=self.screen_width*0.18, y=self.screen_height*0.1)
+        # self.server_entry.place(x=self.screen_width*0.18, y=self.screen_height*0.1)
 
         self.image_label = Label(self, text="Image(jpg,png)", bg="#454545", font=('yu gothic ui', 25, "bold"), highlightbackground="#ffffff", highlightthickness=2)
         self.image_label.place(x=self.screen_width*0.1, y=self.screen_height*0.2, width=self.screen_width//2, height=self.screen_height//2)
@@ -458,7 +458,7 @@ class PredictPage(Frame):
 
             self.info_label11.config(text="")
 
-        self.server_link = self.server_entry.get()
+        self.server_link = "https://moving-legally-boar.ngrok-free.app/"
         if self.server_link.strip()=="":
             messagebox.showerror("Prediction Failed", "Provide Server Link")
 
