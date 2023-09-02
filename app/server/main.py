@@ -29,7 +29,7 @@ app = FastAPI(middleware=middleware)
 
 @app.get("/")
 def read_root():
-    return {"If you see this, ": "it means everything's alright."}
+    return {"If you see this, it means everything's alright."}
 
 @app.post('/predict/')
 async def predict(
