@@ -57,6 +57,7 @@ async def predict(
 
 
 ngrok_tunnel = ngrok.connect(8000)
+ngrok.set_auth_token("2THhoVviVOXuBq97RU9WW095Vtx_6pDFzgtkzRocdaTdBeVG7")
 print('Public URL:', ngrok_tunnel.public_url)
 nest_asyncio.apply()
 
