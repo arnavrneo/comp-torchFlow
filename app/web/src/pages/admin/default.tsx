@@ -47,7 +47,7 @@ export default function UserReports() {
   const boxBg = useColorModeValue('secondaryGray.300', 'whiteAlpha.100')
 
   const [data, setData] = useState([]);
-  const [url, setUrl] = useState('');
+  // const [url, setUrl] = useState('');
 
   const [lat, setLat] = useState(0);
   const [long, setLong] = useState(0);
@@ -112,7 +112,6 @@ export default function UserReports() {
                 <ImageUpload
                   start={data}
                   result={setData}
-                  url={url}
                 />
               }
               name='Supported type'
