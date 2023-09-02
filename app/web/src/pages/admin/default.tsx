@@ -90,6 +90,7 @@ export default function UserReports() {
         <>
           <SimpleGrid columns={{ base: 1, md: 1, xl: 1 }} gap='20px' mb='20px' mt='20px'>
 
+{/* 	    the following code has been legacy version to us. goodbye!
             <MiniStatistics
               startContent={
                 <div>
@@ -105,7 +106,7 @@ export default function UserReports() {
               }
               name=''
               value=''
-            />
+            /> */}
             <MiniStatistics
               startContent={
                 <ImageUpload
