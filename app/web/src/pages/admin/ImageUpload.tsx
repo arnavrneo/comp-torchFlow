@@ -5,7 +5,7 @@ import { Button, Flex, Input } from '@chakra-ui/react';
 import Card from 'components/card/Card';
 
 const ImageUpload = (props) => {
-    const { start, result, url } = props;
+    const { start, result } = props;
     const [selectedFile, setSelectedFile] = useState(null);
 
     const fileChangeHandler = (e) => {
