@@ -1,11 +1,10 @@
 import numpy as np
-import onnxruntime
 from pydantic import BaseModel
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
-from predict import ONNXInference
+from predict import YOLOInference
 import nest_asyncio
 from pyngrok import ngrok
 from typing import List
@@ -13,7 +12,7 @@ import argparse
 
 global app
 
-ONNX_CHECKPOINT = ''
+YOLO_CHECKPOINT = ''
 
 middleware = [
     Middleware(
@@ -44,11 +43,11 @@ async def predict(
           return {"message": "There was an error uploading the file(s)"}
       finally:
           file.file.close()
-    
-    model = ONNXInference(
-        ONNX_CHECKPOINT, 
+
+    model = YOLOInference(
+        YOLO_CHECKPOINT,
         [x.filename for x in files],
-        save_image=False, 
+        save_images=False,
         save_path='./'
     )
     res = model.run()
@@ -57,15 +56,15 @@ async def predict(
 
 ngrok.set_auth_token("2THhoVviVOXuBq97RU9WW095Vtx_6pDFzgtkzRocdaTdBeVG7")
 ngrok_tunnel = ngrok.connect(
-    addr=8000, 
+    addr=8000,
     domain="moving-legally-boar.ngrok-free.app")
 print('Public URL:', ngrok_tunnel.public_url)
 nest_asyncio.apply()
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-  parser.add_argument("-m", "--model_ckpt")
+  parser.add_argument("-m", "--model_ckpt", default="torchFlow-ckpt.pt")
   args = parser.parse_args()
-  ONNX_CHECKPOINT = args.model_ckpt
-  
+  YOLO_CHECKPOINT = args.model_ckpt
+
   uvicorn.run(app, port=8000)
